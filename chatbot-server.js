@@ -43,6 +43,11 @@ const openai = new OpenAI({
 // Email transporter setup
 let transporter;
 async function setupEmailTransporter() {
+  if (!process.env.EMAIL_HOST || !process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+    console.warn('Email transporter not configured. Set EMAIL_HOST, EMAIL_USER, and EMAIL_PASSWORD.');
+    return;
+  }
+
   transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
     port: process.env.EMAIL_PORT || 587,
@@ -463,24 +468,40 @@ function escapeHtml(text) {
   return text.replace(/[&<>"']/g, m => map[m]);
 }
 
-// Start server
-async function start() {
-  await loadConfig();
-  await setupEmailTransporter();
-  await connectDatabase();
+let initializationPromise;
+function initialize() {
+  if (!initializationPromise) {
+    initializationPromise = Promise.all([
+      loadConfig(),
+      setupEmailTransporter(),
+      connectDatabase()
+    ]);
+  }
 
-  app.listen(port, () => {
-    console.log(`Chatbot API server running on http://localhost:${port}`);
-    console.log('Endpoints:');
-    console.log('- POST /api/chatbot/message - Send chat message');
-    console.log('- POST /api/chatbot/lead - Submit lead');
-    console.log('- GET /api/chatbot/config - Get public configuration');
+  return initializationPromise;
+}
+
+async function handler(req, res) {
+  await initialize();
+  if (req.url.startsWith('/api/chatbot')) {
+    req.url = req.url.slice('/api/chatbot'.length) || '/';
+  }
+  return app(req, res);
+}
+
+if (require.main === module) {
+  initialize().then(() => {
+    app.listen(port, () => {
+      console.log(`Chatbot API server running on http://localhost:${port}`);
+      console.log('Endpoints:');
+      console.log('- POST /api/chatbot/message - Send chat message');
+      console.log('- POST /api/chatbot/lead - Submit lead');
+      console.log('- GET /api/chatbot/config - Get public configuration');
+    });
+  }).catch(error => {
+    console.error('Server startup failed:', error);
+    process.exit(1);
   });
 }
 
-start().catch(error => {
-  console.error('Server startup failed:', error);
-  process.exit(1);
-});
-
-module.exports = app;
+module.exports = handler;
