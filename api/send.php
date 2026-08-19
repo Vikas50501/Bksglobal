@@ -21,11 +21,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
     reply(405, ['ok' => false, 'error' => 'Use POST.']);
 }
 
-$autoload = __DIR__ . '/../vendor/autoload.php';
-if (!file_exists($autoload)) {
-    reply(500, ['ok' => false, 'error' => 'PHPMailer is not installed. Run: composer install']);
-}
-require $autoload;
+require __DIR__ . '/../lib/PHPMailer/Exception.php';
+require __DIR__ . '/../lib/PHPMailer/PHPMailer.php';
+require __DIR__ . '/../lib/PHPMailer/SMTP.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;

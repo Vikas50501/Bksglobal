@@ -21,7 +21,7 @@ server validate the input.
 | `chatbot.css`, `chatbot.js` | The chat widget |
 | `api/send.php` | Form handler — sends mail via PHPMailer |
 | `config.example.php` | Copy to `config.php` and put your mail settings in it |
-| `vendor/` | PHPMailer itself, already included — nothing to install |
+| `lib/PHPMailer/` | PHPMailer — 3 files, already included, nothing to install |
 
 ## Setup
 
@@ -39,7 +39,7 @@ For Gmail you must enable 2-Step Verification and then create an
 
 ## Deploy on normal PHP hosting (cPanel / Hostinger)
 
-Upload every file, including `vendor/` and your `config.php`. That's it.
+Upload every file, including `lib/` and your `config.php`. That's it.
 
 ## Deploy on Vercel (demo link)
 
