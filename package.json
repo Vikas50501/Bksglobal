@@ -7,7 +7,7 @@
     "start": "node chatbot-server.js",
     "dev": "nodemon chatbot-server.js",
     "test": "jest",
-    "build": "npm run lint",
+    "build": "echo Static site - no build required",
     "lint": "eslint ."
   },
   "keywords": [
