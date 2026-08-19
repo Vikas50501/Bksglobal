@@ -1,1 +1,0 @@
-module.exports = require('../../chatbot-server');
