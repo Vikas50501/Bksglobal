@@ -74,47 +74,34 @@ if ($errors) {
 /* ---------- config from environment ---------- */
 
 /**
- * Vercel injects env vars into the process. Plain PHP hosts do not, so we
- * also read a .env file sitting next to this project if one exists.
+ * Settings come from config.php on a normal PHP host. Vercel deploys straight
+ * from git, so config.php is not there - it uses Environment Variables instead.
  */
-function dotenv()
+function conf($key, $envKey, $default = '')
 {
-    static $vals = null;
-    if ($vals !== null) {
-        return $vals;
+    static $file = null;
+    if ($file === null) {
+        $path = __DIR__ . '/../config.php';
+        $file = is_readable($path) ? (array) require $path : [];
     }
 
-    $vals = [];
-    $file = __DIR__ . '/../.env';
-    if (is_readable($file)) {
-        foreach (file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
-            $line = trim($line);
-            if ($line === '' || $line[0] === '#' || !str_contains($line, '=')) {
-                continue;
-            }
-            [$k, $v] = explode('=', $line, 2);
-            $vals[trim($k)] = trim(trim($v), "\"'");
-        }
-    }
-    return $vals;
-}
-
-function env($key, $default = '')
-{
-    $v = getenv($key);
+    $v = getenv($envKey);
     if ($v === false || $v === '') {
-        $v = $_ENV[$key] ?? $_SERVER[$key] ?? dotenv()[$key] ?? '';
+        $v = $_ENV[$envKey] ?? $_SERVER[$envKey] ?? '';
+    }
+    if ($v === '') {
+        $v = $file[$key] ?? '';
     }
     return $v !== '' ? $v : $default;
 }
 
-$host   = env('SMTP_HOST');
-$user   = env('SMTP_USER');
-$pass   = env('SMTP_PASS');
-$port   = (int) env('SMTP_PORT', '587');
-$secure = strtolower(env('SMTP_SECURE', 'tls'));           // tls | ssl
-$to     = env('MAIL_TO', $user);
-$from   = env('MAIL_FROM', $user);
+$host   = conf('host', 'SMTP_HOST');
+$user   = conf('user', 'SMTP_USER');
+$pass   = conf('pass', 'SMTP_PASS');
+$port   = (int) conf('port', 'SMTP_PORT', '587');
+$secure = strtolower(conf('secure', 'SMTP_SECURE', 'tls'));   // tls | ssl
+$to     = conf('to', 'MAIL_TO', $user);
+$from   = conf('from', 'MAIL_FROM', $user);
 
 if ($host === '' || $user === '' || $pass === '' || $to === '') {
     reply(500, ['ok' => false, 'error' => 'Mail is not configured on the server yet.']);
@@ -152,7 +139,7 @@ try {
         ? PHPMailer::ENCRYPTION_SMTPS
         : PHPMailer::ENCRYPTION_STARTTLS;
 
-    $mail->setFrom($from, env('MAIL_FROM_NAME', 'Website Chatbot'));
+    $mail->setFrom($from, conf('from_name', 'MAIL_FROM_NAME', 'Website Chatbot'));
     foreach (array_filter(array_map('trim', explode(',', $to))) as $recipient) {
         $mail->addAddress($recipient);
     }
