@@ -96,7 +96,96 @@
   t.addEventListener('mouseleave',function(){tr.style.animationPlayState='running';});
 })();
 
-/* 7 - SERVICE CARD STAGGER */
+/* 7 - REVIEWS */
+(function(){
+  var track=document.getElementById('reviews-track');
+  var controls=document.getElementById('reviews-controls');
+  if(!track||!controls)return;
+  var viewport=document.querySelector('.reviews-viewport');
+  var prev=document.getElementById('reviews-prev');
+  var next=document.getElementById('reviews-next');
+  var average=document.getElementById('review-average');
+  var count=document.getElementById('review-count');
+  var summaryStars=document.getElementById('review-summary-stars');
+  var index=0;
+  var maxIndex=0;
+  var reviews=[];
+  var autoPlay;
+
+  function stars(rating){
+    var value=parseInt(String(rating||'').match(/\d+/)||[0],10);
+    return {value:value,display:'★★★★★'.slice(0,value)};
+  }
+  function move(){
+    var card=track.querySelector('.review-card');
+    if(!card)return;
+    var gap=parseFloat(getComputedStyle(track).gap)||0;
+    var visible=Math.max(1,Math.floor((viewport.clientWidth+gap)/(card.offsetWidth+gap)));
+    maxIndex=Math.max(0,reviews.length-visible);
+    index=Math.min(index,maxIndex);
+    track.style.transform='translateX(-'+(index*(card.offsetWidth+gap))+'px)';
+    prev.disabled=index===0;
+    next.disabled=index===maxIndex;
+  }
+  function render(data){
+    reviews=data.filter(function(review){return review&&review.name;});
+    if(!reviews.length){count.textContent='No reviews available';return;}
+    var total=reviews.reduce(function(sum,review){return sum+stars(review.rating).value;},0);
+    average.textContent=(total/reviews.length).toFixed(2);
+    count.textContent=reviews.length+' client reviews';
+    summaryStars.textContent='★★★★★';
+    reviews.forEach(function(review,i){
+      var rating=stars(review.rating);
+      var card=document.createElement('article');
+      card.className='review-card';
+      card.setAttribute('aria-label','Review by '+review.name);
+      var top=document.createElement('div');
+      top.className='review-card-top';
+      var name=document.createElement('h3');
+      name.className='reviewer-name';
+      name.textContent=review.name;
+      var star=document.createElement('span');
+      star.className='review-stars review-stars-card';
+      star.setAttribute('aria-label',rating.value+' out of 5 stars');
+      star.textContent=rating.display;
+      top.append(name,star);
+      var text=document.createElement('p');
+      text.className='review-text'+(review.text?'':' review-empty');
+      text.textContent=review.text||('Rated our firm '+rating.value+' out of 5.');
+      var mark=document.createElement('span');
+      mark.className='review-mark';
+      mark.setAttribute('aria-hidden','true');
+      mark.textContent='”';
+      card.append(top,text,mark);
+      track.appendChild(card);
+    });
+    controls.hidden=false;
+    move();
+    autoPlay=setInterval(function(){
+      index=index<maxIndex?index+1:0;
+      move();
+    },5500);
+  }
+  prev.addEventListener('click',function(){if(index>0){index--;move();}});
+  next.addEventListener('click',function(){if(index<maxIndex){index++;move();}else{index=0;move();}});
+  viewport.addEventListener('mouseenter',function(){clearInterval(autoPlay);});
+  viewport.addEventListener('mouseleave',function(){
+    clearInterval(autoPlay);
+    autoPlay=setInterval(function(){index=index<maxIndex?index+1:0;move();},5500);
+  });
+  viewport.addEventListener('focusin',function(){clearInterval(autoPlay);});
+  viewport.addEventListener('focusout',function(){
+    clearInterval(autoPlay);
+    autoPlay=setInterval(function(){index=index<maxIndex?index+1:0;move();},5500);
+  });
+  window.addEventListener('resize',move);
+  fetch('reviews.json').then(function(response){
+    if(!response.ok)throw new Error('Review source unavailable');
+    return response.json();
+  }).then(render).catch(function(){count.textContent='Reviews unavailable';});
+})();
+
+/* 8 - SERVICE CARD STAGGER */
 (function(){
   var cards=document.querySelectorAll('.sc');
   if(!cards.length)return;
