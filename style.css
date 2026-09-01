@@ -91,6 +91,50 @@ button {
   cursor: pointer
 }
 
+.whatsapp-float {
+  position: fixed;
+  left: 22px;
+  bottom: 22px;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #25d366;
+  color: #fff;
+  box-shadow: 0 14px 28px rgba(37, 211, 102, .28);
+  z-index: 999;
+  transition: transform var(--m) var(--e), box-shadow var(--m) var(--e), filter var(--m) var(--e);
+}
+
+.whatsapp-float:hover,
+.whatsapp-float:focus-visible {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 18px 30px rgba(37, 211, 102, .35);
+  filter: brightness(1.04);
+}
+
+.whatsapp-float svg {
+  width: 28px;
+  height: 28px;
+  fill: currentColor;
+}
+
+@media (max-width: 640px) {
+  .whatsapp-float {
+    left: 16px;
+    bottom: 16px;
+    width: 54px;
+    height: 54px;
+  }
+
+  .whatsapp-float svg {
+    width: 25px;
+    height: 25px;
+  }
+}
+
 input,
 textarea,
 select {
