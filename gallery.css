@@ -55,7 +55,11 @@
 }
 
 /* Masonry grid */
-.gal-grid { columns: 3; column-gap: 20px; }
+.gal-grid {
+  columns: 3;
+  column-gap: 20px;
+  column-fill: balance;
+}
 
 /* Image card - matches site's border + shadow language */
 .gi {
